@@ -81,5 +81,80 @@ Append the following lines in the /etc/hosts file.
 .....
 .....
 ```
-## Solution Prep
-### Create a solution Definition File
+Quick Cluster Deployment
+
+
+1. Cluster Basic Requirement
+ 
+Hardware and Software Requirement
+
+a) You need 1 Management or Installer node from which you install and run all jobs
+Example: spoc8cxeond.aus.stglabs.ibm.com running redhat 7
+
+b) You also need 1 Master node and 1 or more datanodes. Example on a 4 nodes cluster, you need 5 total nodes.
+— Installer node can be running  Ubuntu or Redhat.
+
+c)  Install ubuntu 16.04 on all cluster nodes, and setup private network.
+— Create local DNS for your private network  in /etc/hosts
+— Add the cluster NODES and installer node’s private ip address to each server in  /etc/hosts
+
+Example of Entries in /etc/hosts
+
+10.10.2.10 wlkmaster
+10.10.2.11 wlk1
+10.10.2.12 wlk2
+10.10.2.13 wlk3
+ 10.10.2.9 clustermgmt
+
+IMPORTANT:  all nodes must be in the same subnet and private network as in the /etc/hosts entries above
+
+Set Hostname
+
+—Login to each cluster nodes and set the hostname appropriately
+example to set the masternode hostname to wlkmaster: 
+
+$ sudo set hostname wlkmaster      
+
+d) Install sshpass
+
+$ sudo apt-get install sshpass
+
+ 2. Building the cluster
+
+a) login to the installer or management node , create a user to manage the cluster. 
+—Exit and log back in with the cluster management user.
+
+b) download the package
+
+$ git clone https://github.com/OpenPOWER-BigData/solution-builder.git 
+$ cd solution-builder
+—use the solution_def template file to build your own custom input file  using the fields below:
+
+#Service Name, required service, target node IP address, Username_to_RunService, namenode hostname, resourcemanager hostname, spark-master hostname
+
+— create a USER on each cluster node to run services
+$ init_ssh_nodes.sh Your_Solution_Def_File
+
+$ ./deploy_solution.sh --sd <solution definition file name> --spark-version <spark version>
+
+    where:
+        <spark version> is one of ["1.6.2", "2.1"]
+
+3. Test cluster functionality
+
+a)Testing Hadoop
+
+$ ssh Cluster_username@wlkmaster "bash -s" < common/hadoopTest.sh 
+
+b) Testing Spark
+$ ssh Cluster_username@wlkmaster "bash -s" < common/hadoopTest.sh 
+
+——End of installation———
+
+4. Optional: To uninstall and Reinstall Apache BigTop
+
+a) login to the management or installer node with the cluster management user
+
+$ cd ./solution-builder
+$ ./remove_solution.sh —sd  <solution definition file name>
+$ $ ./deploy_solution.sh --sd <solution definition file name> --spark-version <spark version>
